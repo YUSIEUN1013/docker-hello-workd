@@ -18,7 +18,7 @@ podTemplate(label: 'docker-build',
   ]
 ) {
     node('docker-build') {
-        def dockerHubCred = your_dockerhub_cred
+        def dockerHubCred = 'your_dockerhub_cred'  // Jenkins에 등록한 Credential ID로 수정
         def appImage
         
         stage('Checkout'){
@@ -57,5 +57,4 @@ podTemplate(label: 'docker-build',
             }
         }
     }
-    
 }
