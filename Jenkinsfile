@@ -33,6 +33,7 @@ spec:
     }
     environment {
         DOCKERHUB_CRED = credentials('your_dockerhub_cred')  // Jenkins Credentials ID
+        def appImage
     }
     stages {
         stage('Checkout') {
