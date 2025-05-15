@@ -53,6 +53,15 @@ podTemplate(label: 'docker-build',
                 }
             }
         }
+
+        stage('Trigger CD Pipeline') {
+            steps {
+                build job: 'cd-pipeline', // 실제 CD 아이템 이름
+                    parameters: [
+                        string(name: 'IMAGE_TAG', value: imageTag)
+                    ]
+            }
+        }
     }
     
 }
