@@ -38,7 +38,7 @@ podTemplate(label: 'docker-build',
         stage('Test'){
             container('docker'){
                 script {
-                  sh 'docker run --rm node-app-test npm test'
+                  sh 'docker run --rm selinux1/node-hello-world npm test'
                 }  
             }
         }
