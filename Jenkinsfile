@@ -42,13 +42,21 @@ spec:
                 }
             }
         }
-        stage('Build and Test') {
-            steps {
-                container('docker') {
-                    sh """
-                        docker build -t selinux1/node-hello-world .
-                        docker run --rm -v \$PWD:/app -w /app selinux1/node-hello-world sh -c "npm install && npm test"
-                    """
+        stage('Build'){
+            container('docker'){
+                script {
+                    appImage = docker.build("selinux1/node-hello-world")
+                }
+            }
+        }
+        
+        stage('Test'){
+            container('docker'){
+                script {
+                    appImage.inside {
+                        sh 'npm install'
+                        sh 'npm test'
+                    }
                 }
             }
         }
