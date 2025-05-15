@@ -1,52 +1,36 @@
-pipeline {
-    agent {
-        kubernetes {
-            label 'docker-build'
-            defaultContainer 'docker'
-            yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    some-label: docker-build
-spec:
-  containers:
-  - name: git
-    image: alpine/git
-    command:
-    - cat
-    tty: true
-  - name: docker
-    image: docker:28.1.1
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
-"""
-        }
-    }
-    environment {
-        DOCKERHUB_CRED = credentials('your_dockerhub_cred')  // Jenkins Credentials ID
+podTemplate(label: 'docker-build', 
+  containers: [
+    containerTemplate(
+      name: 'git',
+      image: 'alpine/git',
+      command: 'cat',
+      ttyEnabled: true
+    ),
+    containerTemplate(
+      name: 'docker',
+      image: 'docker',
+      command: 'cat',
+      ttyEnabled: true
+    ),
+  ],
+  volumes: [ 
+    hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'), 
+  ]
+) {
+    node('docker-build') {
+        def dockerHubCred = <your_dockerhub_cred>
         def appImage
-    }
-    stages {
-        stage('Checkout') {
-            steps {
-                container('git') {
-                    checkout scm
-                }
+        
+        stage('Checkout'){
+            container('git'){
+                checkout scm
             }
         }
+        
         stage('Build'){
             container('docker'){
                 script {
-                    appImage = docker.build("selinux1/node-hello-world")
+                    appImage = docker.build("<your-dockerhub-id>/node-hello-world")
                 }
             }
         }
@@ -61,17 +45,17 @@ spec:
                 }
             }
         }
-        stage('Push') {
-            steps {
-                container('docker') {
-                    sh """
-                        echo \$DOCKERHUB_CRED_PSW | docker login -u \$DOCKERHUB_CRED_USR --password-stdin
-                        docker push selinux1/node-hello-world:\$BUILD_NUMBER
-                        docker tag selinux1/node-hello-world:\$BUILD_NUMBER selinux1/node-hello-world:latest
-                        docker push selinux1/node-hello-world:latest
-                    """
+
+        stage('Push'){
+            container('docker'){
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', dockerHubCred){
+                        appImage.push("${env.BUILD_NUMBER}")
+                        appImage.push("latest")
+                    }
                 }
             }
         }
     }
+    
 }
