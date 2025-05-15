@@ -38,7 +38,7 @@ podTemplate(label: 'docker-build',
         stage('Test'){
             container('docker'){
                 script {
-                    appImage.inside {
+                    appImage.inside("${env.WORKSPACE}") {
                         sh 'npm install'
                         sh 'npm test'
                     }
