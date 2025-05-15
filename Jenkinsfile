@@ -38,13 +38,14 @@ podTemplate(label: 'docker-build',
         stage('Test'){
             container('docker'){
                 script {
-            sh """
-                docker run --rm \
-                    -v ${env.WORKSPACE}:/app \
-                    -w /app \
-                    node:18-alpine \
-                    sh -c 'npm install && npm test'
-            """
+            sh 'ls -al ${WORKSPACE}'
+      sh """
+        docker run --rm \
+          -v ${env.WORKSPACE}:/app \
+          -w /app \
+          node:18-alpine \
+          sh -c 'npm install && npm test'
+      """
                 }  
             }
         }
